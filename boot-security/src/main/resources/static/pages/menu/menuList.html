@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" media="screen" href="../../css/bootstrap.min.css">
+<link rel="stylesheet" href="../../css/treetable/jquery.treetable.css" />
+<link rel="stylesheet" href="../../css/treetable/jquery.treetable.theme.default.css" />
+<link rel="stylesheet" type="text/css" media="screen" href="../../layui/css/layui.css">
+</head>
+<body>
+    <div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <header style="height: 100%">
+                    <div align="left">
+	                    <table style="width: 100%">
+	                   		<tr>
+	                   			<td>
+								</td>
+								<td align="right">
+	                   				<button class="layui-btn layui-btn-sm" onclick="location.href='addMenu.html'" permission="sys:menu:add">
+                                      <i class="layui-icon">&#xe608;</i> 添加
+                                    </button>
+	                   			</td>
+	                   		</tr> 
+	                    </table>
+					</div>
+                </header>
+
+                <div>
+                    <div class="widget-body no-padding">
+                        <table id="dt-table" class="table table-striped table-bordered table-hover" style="width:100%">
+                             <tr>
+                                 <th width="20%">名称</th>
+                                 <th width="5%">id</th>
+								 <th>href</th>     
+								 <th width="15%">permission</th>     
+								 <th width="5%">sort</th>     
+								 <th>操作</th>
+                             </tr>
+                        </table>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<script type="text/javascript" src="../../js/libs/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="../../js/jq.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/my/permission.js"></script>
+<script src="../../js/libs/jquery.treetable.js"></script>
+<script type="text/javascript">
+    initMenuList();
+    function initMenuList(){
+        $.ajax({
+            url:"/permissions",
+            type:"get",
+            async:false,
+            success:function(data){
+                //写入table中
+                var  table=$("#dt-table");
+                $.each(data,function(index,item){
+                    var tr=$("<tr>").attr("data-tt-id",item.id).attr("data-tt-parent-id",item.parentId);
+                    var name=$("<td>").text(item.name);
+                    var id=$("<td>").text(item.id);
+                    var href=item.href;
+                    if(item.href=null){
+                        href="";
+                    }
+                    h=$("<td>").text(href);
+                    var permission=item.permission;
+                    if(item.permission=null){
+                       permission="";
+                    }
+                    p=$("<td>").text(permission);
+                    var sort=$("<td>").text(item.sort);
+                    //做按钮
+                    var bt1=$("<button>").addClass("layui-btn layui-btn-xs edit").attr("title","编辑").attr("permission","sys:menu:add").attr("id",item.id);
+                    var i1= $("<i class='layui-icon'>&#xe642;</i>");
+                    i1.appendTo(bt1);
+                    var bt2=$("<button>").addClass("layui-btn layui-btn-xs del").attr("title","删除").attr("permission","sys:menu:del").attr("id",item.id);
+                    var icon2=$("<i class='layui-icon'>&#xe640;</i>");
+                    icon2.appendTo(bt2);
+                    var bttd=$("<td>").append(bt1).append("").append(bt2);
+                    //拼接
+                    tr.append(name).append(id).append(h).append(p).append(sort).append(bttd);
+                    table.append(tr);
+                })
+            }
+        })
+    }
+
+    //验证是否有该权限,没有隐藏按钮   在permission.js中写
+    //点击编辑按钮
+    $(".edit").on("click",function(){
+        location.href="updateMenu.html?id="+$(this).attr("id");
+    })
+
+
+    //点击删除
+    $(".del").on("click",function(){
+        var id=$(this).attr("id")
+        layer.confirm('确定删除么',{btn:['1','2']},function(){
+            $.ajax({
+                url:"/permissions/"+id,
+                type:"delete",
+                success:function(data){
+                    location.reload();
+                }
+            })
+        })
+    })
+
+
+    layui.use('layer', function(){
+        var layer = layui.layer;
+    });
+
+    var option = {
+        expandable :true,//可以展开
+        clickableNodeNames : true,//点击节点名称打开节点
+    };
+
+    $("#dt-table").treetable(option);
+
+</script>

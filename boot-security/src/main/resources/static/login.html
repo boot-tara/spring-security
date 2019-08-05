@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Cache-Control" content="no-cache">
+	<meta http-equiv="Expires" content="0">
+	<title>登录</title>
+	<link href="css/login.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="login">
+	<div class="message">后台管理系统</div>
+	<div id="darkbannerwrap"></div>
+
+	<form id="login-form" method="post" onsubmit="return false;">
+		<input id="username" name="username" placeholder="用户名" type="text"
+			   autocomplete="off">
+		<hr class="hr15">
+		<input id="password" name="password" placeholder="密码" type="password"
+			   autocomplete="off">
+		<hr class="hr15">
+		<button style="width: 100%;" type="submit"
+				onclick="login(this)">登录</button>
+		<hr class="hr20">
+		<span id="info" style="color: red"></span>
+	</form>
+
+
+</div>
+
+</body>
+<script src="js/libs/jquery-2.1.1.min.js"></script>
+<script type="text/javascript">
+    //判断当前页面是不是最外层页面
+    if(top!=self){
+        parent.location.href="login.html";
+    }
+
+    //点击登陆
+    function login(obj){
+        $(obj).attr("disabled",true);
+        var username = $.trim($('#username').val());
+        var password = $.trim($('#password').val());
+        $.ajax({
+            type : 'post',
+            url : '/login',
+            data : $("#login-form").serialize(),
+            success : function(data) {
+                //data就是传过来的token的json形式  不要用alert打印
+                console.log(data)
+                alert(data)
+                localStorage.setItem("token", data.token); //将token存储到界面
+                location.href = 'index.html';
+            },
+            error : function(xhr, textStatus, errorThrown) {
+                //产生登录失败的异常，转成json放入页面
+                var msg = xhr.responseText;
+                console.log(msg)
+                var response = JSON.parse(msg);//json转成js对象
+                console.log(response)
+                $("#info").text(response.message);
+                $(obj).attr("disabled", false);
+            }
+        })
+    }
+</script>
+</html>

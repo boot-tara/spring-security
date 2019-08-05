@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.security.dao.NoticeDao">
+    <select id="getNoticeByPage" resultType="Notice">
+        select * from t_notice where 1=1
+        <trim>
+            <if test="title!=null">
+                and title like CONCAT('%',#{title},"%")
+            </if>
+            <if test="status!=null and status!=-1">
+                and status=#{status}
+            </if>
+            <if test="createTime!=null">
+                and updateTime &lt; #{createTime}
+            </if>
+            <if test="updateTime!=null">
+                and updateTime &gt; #{updateTime}
+            </if>
+        </trim>
+    </select>
+
+
+    <select id="getNoticeVoByNoticeId" resultMap="div">
+       select * from t_notice left join t_notice_read on t_notice.id=t_notice_read.noticeId
+
+left join sys_user on userId=sys_user.id
+where noticeId=#{noticeId}
+    </select>
+
+    <resultMap id="div" type="NoticeVo" autoMapping="true">
+       <result property="id"  column="id"></result>
+        <collection property="users" ofType="SysUser" autoMapping="true">
+            <result property="id" column="userId"></result>
+        </collection>
+      </resultMap>
+</mapper>

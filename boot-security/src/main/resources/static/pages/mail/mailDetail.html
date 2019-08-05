@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" media="screen" href="../../css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" media="screen" href="../../layui/css/layui.css">
+</head>
+<body>
+	<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+		<fieldset>
+			<input type="hidden" id="id" name="id">
+			<div class="form-group">
+				<label class="col-md-2 control-label">标题</label>
+				<div class="col-md-10" id="subject" align="left">
+				</div>
+			</div>
+		</fieldset>
+		<fieldset>
+			<div class="form-group">
+				<label class="col-md-2 control-label"></label>
+				<div class="col-md-10">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>收件人</th>
+								<th>投递状态</th>
+							</tr>
+						</thead>
+						<tbody id="toUsers">
+						
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset>
+			<div class="form-group">
+				<label class="col-md-2 control-label">内容</label>
+				<div class="col-md-10" id="content">
+					
+				</div>
+			</div>
+
+			<div class="form-actions">
+				<div class="row" align="center">
+					<div class="col-md-12">
+					    <button class="btn btn-primary" onclick="location.href='mailList.html'">返回</button>
+					</div>
+				</div>
+			</div>
+
+		</fieldset>
+	</div>
+
+	<script type="text/javascript" src="../../js/libs/jquery-2.1.1.min.js"></script>
+	<script type="text/javascript" src="../../js/jq.js"></script>
+	<script type="text/javascript" src="../../layui/layui.js"></script>
+	<script type="text/javascript" src="../../js/common.js"></script>
+	<script type="text/javascript">
+        initData();
+        function initData(){
+            var id=getUrlParam("id");
+            $.ajax({
+				url:"/mails/"+id,
+				type:"get",
+				success:function(data){
+                    $("#subject").html(data.subject);
+                    $("#content").html(data.content);
+				}
+			})
+
+			//获取用户，状态
+			$.ajax({
+                type : 'get',
+                url : '/mails/'+id+"/to",
+                success : function(data) {
+					console.log(data);
+                    var tbd=$("#toUsers")
+					tbd.empty();
+					$.each(data,function(index,item){
+					    var tr=$("<tr>").appendTo(tbd);
+						var name=$("<td>").text(item.toUser);
+                        var status=$("<td>").text(item.status=="true"?"成功":"失败");
+                        tr.append(name).append(status)
+					})
+                }
+			})
+		}
+
+
+
+	</script>
+</body>
+</html>

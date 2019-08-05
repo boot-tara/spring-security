@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" media="screen" href="../../css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" media="screen" href="../../css/dataTables.bootstrap.min.css">
+<link rel="stylesheet" href="../../layui/css/layui.css" media="all" />
+</head>
+<body>
+    <div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div>
+                <header style="height: 100%">
+					 <div align="left">
+                        <table style="width: 100%">
+                            <tr>
+                                <td>
+                                    <button type="button" class="layui-btn" id="test1">
+									  <i class="layui-icon">&#xe67c;</i>上传文件
+									</button>
+                                </td>
+                                <td align="right">
+                                    <form class="form-inline" onsubmit="return false">
+                                        <div class="form-group">
+                                           <button id="searchBt" class="layui-btn layui-btn-sm" permission="sys:file:query"><i class="layui-icon">&#xe615;</i>搜索</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </header>
+
+                <div>
+                    <div class="widget-body no-padding">
+                        <table id="dt-table" class="table table-striped table-bordered table-hover" style="width:100%">
+                            <thead>
+                                <tr>
+                                </tr>
+                                <tr>
+                                    <th>url</th>
+                                    <th>path</th>
+                                    <th>contentType</th>
+                                    <th>修改时间</th>
+                                    <th>管理</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbd">
+                            </tbody>
+                        </table>
+
+                        <!--分页容器-->
+                        <div id="page" style="text-align:right"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script type="text/javascript" src="../../js/libs/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="../../js/jq.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/plugin/datatables/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="../../js/plugin/datatables/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript" src="../../js/my/permission.js"></script>
+<script type="text/javascript">
+
+    //获取协议，ip,端口
+    var pro=window.location.protocol;
+    var host=window.location.host;
+    var domain=pro+"//"+host;
+    init(1,5);
+    function init(pno,psize){
+        var total=0;
+        $.ajax({
+            url:"/files/"+pno+"/"+psize,
+            type:"get",
+            success:function(data){
+                total=data.total;
+                console.log(data);
+                var tbd=$("#tbd").empty();
+                $.each(data.list,function(index,item){
+                    var tr=$("<tr>").appendTo(tbd);
+                    var src=domain+"/statics"+item.url
+                    var url="";
+                    if(item.type==1){
+                        var a=($("<a>").attr("target","_blank").attr("href",""+src+""));
+                        $("<img>").attr("width","30").attr("src",""+src+"").appendTo(a);
+                         url=$("<td>").append(a);
+                    }
+                    else{
+                        url=$("<td>").text(item.url);
+                    }
+                    var path=$("<td>").text(item.path);
+                    var type=$("<td>").text(item.contentType);
+                    var time=$("<td>").text(item.updateTime);
+                    var btn=$("<button>").addClass("layui-btn layui-btn-xs  del").attr("permission","sys:file:del").attr("id",item.id).attr("title","删除");
+                    $("<i class='layui-icon'>&#xe640;</i>").appendTo(btn);
+                    var tdbtn=$("<td>").append(btn);
+                    tr.append(url).append(path).append(type).append(time).append(tdbtn);
+                })
+                todaohangtiao(pno,psize,total);
+            }
+
+        })
+
+
+    }
+
+    function todaohangtiao(pno,psize,total){
+            layui.use('laypage', function () {
+                var laypage = layui.laypage;
+                // 调用分页
+                laypage.render({
+                    // 分页容器的id
+                    elem: 'page',// *必选参数
+                    // 数据总数，从服务端得到
+                    count: total,// *必选参数
+                    // 每页显示的条数。laypage将会借助 count 和 limit 计算出分页数。
+                    limit:psize,
+                    // 起始页
+                    curr:pno,
+                    // 连续出现的页码个数
+                    groups:5,
+                    // 自定义每页条数的选择项
+                    limits: [5, 10, 15, 20],
+                    // 自定义首页、尾页、上一页、下一页文本
+                    first: '首页',
+                    last: '尾页',
+                    prev: '<em><<</em>',
+                    next: '<em>>></em>',
+                    // 自定义主题
+                    theme: "#FF5722",
+                    // 自定义排版
+                    layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+                    // 渲染数据
+                    jump: function (data, first) {
+                        // data包含了当前分页的所有参数
+                        if(!first){
+                            //do something
+                            page = data.curr;
+                            size = data.limit;
+                            init(page,size);
+                        }
+                    }
+                });
+            })
+    }
+
+
+    //上传文件
+    layui.use('upload', function(){
+        var upload = layui.upload;
+        upload.render({
+            elem: '#test1' //绑定元素
+            ,accept: 'file' //允许上传的文件类型
+            ,url: '/files/' //上传接口
+            ,method: 'POST'
+            ,done: function(res, index, upload){
+                layer.msg("上传成功");
+                init(1,5);
+            }
+        })
+
+    })
+
+
+    //文件删除
+    $("#tbd").on("click",".del",function(){
+        var id=$(this).attr("id");
+        console.log(id)
+        layer.confirm('确定要删除么',{btn :['确定',"取消"]},function(){
+            $.ajax({
+                url:"/files/"+id,
+                type:"delete",
+                success:function(data){
+                    layer.msg("删除成功"),
+                    init(1,5);
+                }
+            })
+            layer.close(1);
+        })
+    })
+
+</script>
